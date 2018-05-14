@@ -22,7 +22,6 @@ def riH2O(w, d = 1000, T = 20):
     w *= 1e-3
 
 # Celsius -> Kelvins
-
     T += 273.15
 
     d0 = 1e+3
