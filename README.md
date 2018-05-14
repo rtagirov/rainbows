@@ -4,9 +4,9 @@ The results of the original paper are reproduced only to some extent.
 In particular, for reasons unknown, there is more green in the rainbow than blue.
 The values of relative intensity are a bit higher than in the original paper.
 
-rainbows.py --- main file
+rainbows.py --- main program
 
-rainbow.py  --- various functions
+rainbow.py  --- various rainbow functions
 
                 --> riH2O - refractive index of water (see 'papers' directory)
 
@@ -20,4 +20,4 @@ first.py    --- builds optimal gamma grid for the first order rainbow and calls 
 
 auxfunc.py  --- auxiliary functions
 
-auxplt.py   --- auxiliary plotting functions
+auxplt.py   --- auxiliary functions for plotting
