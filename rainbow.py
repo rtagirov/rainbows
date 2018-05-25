@@ -3,8 +3,10 @@ import more_itertools as mit
 
 import importlib
 import auxfunc
+import auxsys
 
 importlib.reload(auxfunc)
+importlib.reload(auxsys)
 
 #package for showing progress bars
 from tqdm import tqdm
@@ -13,7 +15,7 @@ from tqdm import tqdm
 # at each wavelength for a rainbow of a given order
 # from the gamma(phi) dependence
 # gam_grid --- gamma binning
-# ngb --- number of gamma bins (calculated in first.py)
+# ngb --- number of gamma bins (calculated in zero.py/first.py)
 def intensity(order, phi, gam, gam_grid, wvl, ngb):
 
 # phi to radians
@@ -27,6 +29,8 @@ def intensity(order, phi, gam, gam_grid, wvl, ngb):
 
 # contribution to intensity from the phi intervals
 # corresponding to a given gamma bin
+# for the rainbows of the zero, first and second order the
+# maximum number of phi intervals is two
     contr1 = np.zeros((len(wvl), ngb))
     contr2 = np.zeros((len(wvl), ngb))
 
@@ -45,7 +49,8 @@ def intensity(order, phi, gam, gam_grid, wvl, ngb):
 # tqdm creates the progress bar of width corresponding to the width of the terminal
 # with the given description (desc) for the progress bar
         for j in tqdm(range(ngb), ncols = auxfunc.term_width(), \
-                                  desc = 'Calculating intensity ' +
+                                  desc = 'Calculating intensity (order ' \
+                                          + str(order) + ') ' +
                                          'at ' + str(wvl[i]) + ' nm'):
 
             p1 = 0.0  # middle phi for the first phi interval
@@ -70,9 +75,10 @@ def intensity(order, phi, gam, gam_grid, wvl, ngb):
 #           the groups correspond to different phi intervals rays in which end up in the same gamma bin
 #           to sum up: g is a nested list of index groups of the form 
 #           g = [[idx_11, idx_12, ... ,idx_1n], [idx_21, idx_22, ... ,idx_2n]];
-#           the second list in g can be empty depending on which gamma bin one looks at as evidenced by the gamma(phi) plot
-#           both lists in g can be empty as well, for example when we consider 
-#           purple color and any gamma bin that is located higher
+#           the second list in g can be empty depending on which gamma bin one looks at 
+#           as, for example, evidenced by the gamma(phi) plot for the first order rainbow;
+#           both lists in g can be empty as well, e.g. when we consider purple color in
+#           the first order rainbow and any gamma bin that is located higher
 #           than the maximum gamma for the purple color
             g = [list(gr) for gr in mit.consecutive_groups(idx[0].tolist())]
 
@@ -120,7 +126,8 @@ def intensity(order, phi, gam, gam_grid, wvl, ngb):
                     fren2[i, j] = fresnel(order, p2, wvl[i])
 
 #   the sum of weights has to be equal to one
-#   because of the numerical innacuracies it slightly differs from one
+#   because of the numerical innacuracies the sum of
+#   the calculated geometrical weights slightly differs from one
 #   here we perform the weight renormalization to correct this
     for i in range(len(wvl)):
 
@@ -140,7 +147,7 @@ def intensity(order, phi, gam, gam_grid, wvl, ngb):
 #   frowned upon by the Python interpreter
     inten0[np.where(inten0 == 0.0)] = np.nan
 
-#   outgoing intensity is the sum of the weighted contributions
+#   outgoing intensity is the sum of the weighted contributions;
 #   we are concerned with the intensity relative to the incident one
 #   therefore we divide the sum of the weighted contributions
 #   by the incident intensity and multiply by 100 to get the 
@@ -160,11 +167,49 @@ def intensity(order, phi, gam, gam_grid, wvl, ngb):
 # to describe the unpolarized light
 def fresnel(order, phi, wvl):
 
+    if order != 0 and order != 1 and order != 2:
+
+        auxsys.abort('rainbow.py: fresnel: rainbow order is not recognized.')
+
 #   refraction coefficient for a given wavelength
     n = riH2O(wvl)
 
 #   angle of refraction
     theta = np.arcsin(np.sin(phi) / n)
+
+    if order == 0:
+
+#       s-polarization (see fresnel_eqs.pdf, p. 13, left column)
+#       ----------------------------------------------------------------------
+#       first transmission coefficient (into the drop)
+        t1s = 2.0 * np.cos(phi) / (np.cos(phi) + n * np.cos(theta))
+
+#       second transmission coefficient (out of the drop)
+        t2s = 2.0 * n * np.cos(theta) / (n * np.cos(theta) + np.cos(phi))
+
+#       transmittance (see fresnel_eqs.pdf, p. 18)
+        T1s = (n * np.cos(theta) / np.cos(phi)) * t1s**2.0
+        T2s = (np.cos(phi) / np.cos(theta) / n) * t2s**2.0
+        
+#       p-polarization (see fresnel_eqs.pdf, p. 13, right column)
+#       ----------------------------------------------------------------------
+#       first transmission coefficient (into the drop)
+        t1p = 2.0 * np.cos(phi) / (n * np.cos(phi) + np.cos(theta))
+
+#       second transmission coefficient (out of the drop)
+        t2p = 2.0 * n * np.cos(theta) / (n * np.cos(phi) + np.cos(theta))
+
+#       transmittance (see fresnel_eqs.pdf, p. 18)
+        T1p = (n * np.cos(theta) / np.cos(phi)) * t1p**2.0
+        T2p = (np.cos(phi) / np.cos(theta) / n) * t2p**2.0
+#       ----------------------------------------------------------------------
+
+#       calculating the (p + s) / 2 means of transmittance to describe the unpolarized light
+        T1 = 0.5 * (T1p + T1s)
+        T2 = 0.5 * (T2p + T2s)
+
+#       fraction of light that gets out of the drop after two transmissions
+        return T1 * T2
 
 #   branch for the first order rainbow
     if order == 1:
@@ -206,11 +251,10 @@ def fresnel(order, phi, wvl):
         T2p = (np.cos(phi) / np.cos(theta) / n) * t2p**2.0
 #       ----------------------------------------------------------------------
 
-#       calculating the (p + s) / 2 means of reflectance and transmittance to describe unpolarized light
+#       calculating the (p + s) / 2 means of reflectance and transmittance to describe the unpolarized light
         R = 0.5 * (Rp + Rs)
 
         T1 = 0.5 * (T1p + T1s)
-
         T2 = 0.5 * (T2p + T2s)
 
 #       fraction of light that gets out of the drop after two transmissions and one reflection
@@ -229,6 +273,11 @@ def gamma(order, phi, wvl):
 
 # refraction index for given wavelength/color
         n = riH2O(wvl[i])
+
+        if order == 0:
+
+#           follows from geometrical considerations
+            g[i, :] = 2.0 * (phi - np.arcsin(np.sin(phi) / n))
 
         if order == 1:
 

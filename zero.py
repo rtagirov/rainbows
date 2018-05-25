@@ -9,7 +9,7 @@ importlib.reload(auxplt)
 importlib.reload(rainbow)
 
 # function 'order' in this module calculates an
-# optimal gamma binning for the first order rainbow;
+# optimal gamma binning for the zero order rainbow;
 # this calculation is the first part of the intensity calculation;
 # at the end of the function the binning is passed onto
 # the function 'intensity' declared in the rainbow.py module;
@@ -20,49 +20,51 @@ importlib.reload(rainbow)
 # this function constructs the gamma grid in such a way that the maximum
 # gamma for each color is always at the end of the bin
 # thus ensuring that there is no loss of precision;
-# it means, however, that the gimma binning is non-uniform which also results in loss of precision;
+# it means, however, that the gamma binning is non-uniform which also results in loss of precision;
 # but with the help of array ngb2 (see below), the non-uniformity is minimized
 def order(phi, gam, wvl):
 
 #   number of gamma bins for the gamma(phi) dependency
-#   corresponding to the purple color
+#   corresponding to the red color
     ngb1 = 1000
 
 #   number of gamma bins between:
-#   purple and blue
-#   blue and green
-#   green and red
+#   red and green
+#   green and blue
+#   blue and purple
 #   trial and error showed that if we have these numbers of
 #   bins in between the colors
 #   the spacing between gamma points in the eventual grid will be
 #   approximately the same (i.e. differing by no more that 5% for the
-#   purple bins and those in between the colors)
-    ngb2 = np.array([12, 12, 11])
+#   red bins and those in between the colors)
+    ngb2 = np.array([4, 4, 4])
 
 #   initiating gamma grid as a list
     gam_grid = []
 
-#   length of gamma bins up to the maximum of gamma(phi) for purple color
-    dgam = max(gam[0, :]) / ngb1
+#   length of gamma bins up to the maximum of gamma(phi) for red color
+    dgam = max(gam[3, :]) / ngb1
 
-#   building gamma grid up to the gamma(phi) maximum for purple color
+#   building gamma grid up to the gamma(phi) maximum for red color
     for j in range(0, ngb1 + 1):
 
         gam_grid.append(j * dgam)
 
 #   length of gamma bins in between the remaining colors
 #   this is an array of length 3:
-#   purle to blue
-#   blue to green
-#   green to red
+#   red to green
+#   green to blue
+#   blue to purple
     dg = np.zeros(len(wvl) - 1)
 
-#   loop over all colors except purple
-    for i in range(0, len(wvl) - 1):
+#   loop over all colors except red
+    for i in range(len(wvl) - 1, 0, -1):
+
+        k = len(wvl) - 1 - i
 
 #       dividing the distance between the gamma(phi) maxima
 #       by the corresponding number of bins given by the ngb2 array
-        dg[i] = (max(gam[i + 1, :]) - max(gam[i, :])) / ngb2[i]
+        dg[k] = (max(gam[i - 1, :]) - max(gam[i, :])) / ngb2[k]
 
 #       now we have to incorporate the new bins into the gamma grid that we already have;
 #       to achieve that we need to locate the last element in the gamma grid
@@ -70,9 +72,9 @@ def order(phi, gam, wvl):
         last_gam_idx = len(gam_grid) - 1
 
 #       augmenting the gamma grid with the bins corresponding to the current color pair
-        for j in range(1, ngb2[i] + 1):
+        for j in range(1, ngb2[k] + 1):
 
-            gam_grid.append(gam_grid[last_gam_idx] + j * dg[i])
+            gam_grid.append(gam_grid[last_gam_idx] + j * dg[k])
 
 #   eventual number of gamma bins
     ngb = ngb1 + ngb2[0] + ngb2[1] + ngb2[2]
@@ -86,7 +88,7 @@ def order(phi, gam, wvl):
         gamma[j] = (gam_grid[j + 1] + gam_grid[j]) / 2.0
 
 #   gamma grid is ready; we can calculate the relative (to incident) intensity now (in %)
-    inten = rainbow.intensity(1, phi, gam, gam_grid, wvl, ngb)
+    inten = rainbow.intensity(0, phi, gam, gam_grid, wvl, ngb)
 
     return gam_grid, gamma, inten
 
@@ -103,7 +105,7 @@ def plot_gamphi(phi, gam, wvl, col):
         ax.plot(phi, gam[i, :], color = col[i])
 
     ax.set_xlim(0, 90)
-    ax.set_ylim(0, 45)
+    ax.set_ylim(0, 90)
 
     ax.set_xlabel(r'$\phi$, [deg]', fontsize = 30)
     ax.set_ylabel(r'$\gamma$, [deg]', fontsize = 30)
@@ -112,7 +114,7 @@ def plot_gamphi(phi, gam, wvl, col):
     ax.tick_params(axis = 'both', labelsize = 20)
 
 #   invoke savepdf function from auxplt.py module (auxiliary plotting functions)
-    auxplt.savepdf('phigam_1')
+    auxplt.savepdf('phigam_0')
 
 # zoomed in version of the gamma(phi) dependence
 # the zoom-in is around the angle of maximum deflection
@@ -135,8 +137,8 @@ def plot_maxgam(phi, gam, gam_grid, wvl, col):
 #       drawing a horizontal line for each value
         ax.axhline(y = gam_grid[j], linewidth = 0.5)
 
-    ax.set_xlim(50, 67.75)
-    ax.set_ylim(40.5, 42.25)
+    ax.set_xlim(88, 90)
+    ax.set_ylim(80, 84)
 
     ax.set_xlabel(r'$\phi$, [deg]', fontsize = 30)
     ax.set_ylabel(r'$\gamma$, [deg]', fontsize = 30)
@@ -145,7 +147,7 @@ def plot_maxgam(phi, gam, gam_grid, wvl, col):
     ax.tick_params(axis = 'both', labelsize = 20)
 
 #   invoke savepdf function from auxplt.py module (auxiliary plotting functions)
-    auxplt.savepdf('maxgam_1')
+    auxplt.savepdf('maxgam_0')
 
 # plot the rainbow color histogram to qualitatively show the separation of colors
 def plot_hist(gam, gam_grid, wvl, col):
@@ -160,7 +162,7 @@ def plot_hist(gam, gam_grid, wvl, col):
 #       alpha is the degree of histogram transparency
         ax.hist(gam[i, :], gam_grid, histtype = 'bar', facecolor = col[i], alpha = 0.5)
 
-    ax.set_xlim(40, 42.5)
+    ax.set_xlim(0, 90)
 
     ax.set_xlabel(r'$\gamma$, [deg]', fontsize = 30)
     ax.set_ylabel(r'Number of $\gamma$-values', fontsize = 30)
@@ -169,4 +171,4 @@ def plot_hist(gam, gam_grid, wvl, col):
     ax.tick_params(axis = 'both', labelsize = 20)
 
 #   invoke savepdf function from auxplt.py module (auxiliary plotting functions)
-    auxplt.savepdf('hist_1')
+    auxplt.savepdf('hist_0')
