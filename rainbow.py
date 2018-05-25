@@ -154,6 +154,8 @@ def intensity(order, phi, gam, gam_grid, wvl, ngb):
 #   relative intensity in percents of the incident intensity
     inten = (contr1 * weigh1 * fren1 + contr2 * weigh2 * fren2) * 100.0 / inten0
 
+    inten[np.where(inten == 0.0)] = np.nan
+
     return inten
 
 # Fresnel weight for a rainbow of a given order as a function of incidence angle and wavelength;
@@ -177,88 +179,63 @@ def fresnel(order, phi, wvl):
 #   angle of refraction
     theta = np.arcsin(np.sin(phi) / n)
 
+#   s-polarization (see fresnel_eqs.pdf, p. 13, left column)
+#   ----------------------------------------------------------------------
+#   first transmission coefficient (into the drop)
+    t1s = 2.0 * np.cos(phi) / (np.cos(phi) + n * np.cos(theta))
+
+#   reflection coefficient
+    rs = (np.cos(phi) - n * np.cos(theta)) / ((np.cos(phi) + n * np.cos(theta)))
+
+#   second transmission coefficient (out of the drop)
+    t2s = 2.0 * n * np.cos(theta) / (n * np.cos(theta) + np.cos(phi))
+
+#   reflectance (see fresnel_eqs.pdf, p. 17)
+    Rs = rs**2.0
+
+#   transmittance (see fresnel_eqs.pdf, p. 18)
+    T1s = (n * np.cos(theta) / np.cos(phi)) * t1s**2.0
+    T2s = (np.cos(phi) / np.cos(theta) / n) * t2s**2.0
+
+#   p-polarization (see fresnel_eqs.pdf, p. 13, right column)
+#   ----------------------------------------------------------------------
+#   first transmission coefficient (into the drop)
+    t1p = 2.0 * np.cos(phi) / (n * np.cos(phi) + np.cos(theta))
+
+#   reflection coefficient
+    rp = (n * np.cos(phi) - np.cos(theta)) / (n * np.cos(phi) + np.cos(theta))
+
+#   second transmission coefficient (out of the drop)
+    t2p = 2.0 * n * np.cos(theta) / (n * np.cos(phi) + np.cos(theta))
+
+#   reflectance (see fresnel_eqs.pdf, p. 17)
+    Rp = rp**2.0
+
+#   transmittance (see fresnel_eqs.pdf, p. 18)
+    T1p = (n * np.cos(theta) / np.cos(phi)) * t1p**2.0
+    T2p = (np.cos(phi) / np.cos(theta) / n) * t2p**2.0
+#   ----------------------------------------------------------------------
+
+#   calculating the (p + s) / 2 means of reflectance and transmittance to describe the unpolarized light
+    R = 0.5 * (Rp + Rs)
+
+    T1 = 0.5 * (T1p + T1s)
+    T2 = 0.5 * (T2p + T2s)
+
     if order == 0:
-
-#       s-polarization (see fresnel_eqs.pdf, p. 13, left column)
-#       ----------------------------------------------------------------------
-#       first transmission coefficient (into the drop)
-        t1s = 2.0 * np.cos(phi) / (np.cos(phi) + n * np.cos(theta))
-
-#       second transmission coefficient (out of the drop)
-        t2s = 2.0 * n * np.cos(theta) / (n * np.cos(theta) + np.cos(phi))
-
-#       transmittance (see fresnel_eqs.pdf, p. 18)
-        T1s = (n * np.cos(theta) / np.cos(phi)) * t1s**2.0
-        T2s = (np.cos(phi) / np.cos(theta) / n) * t2s**2.0
-        
-#       p-polarization (see fresnel_eqs.pdf, p. 13, right column)
-#       ----------------------------------------------------------------------
-#       first transmission coefficient (into the drop)
-        t1p = 2.0 * np.cos(phi) / (n * np.cos(phi) + np.cos(theta))
-
-#       second transmission coefficient (out of the drop)
-        t2p = 2.0 * n * np.cos(theta) / (n * np.cos(phi) + np.cos(theta))
-
-#       transmittance (see fresnel_eqs.pdf, p. 18)
-        T1p = (n * np.cos(theta) / np.cos(phi)) * t1p**2.0
-        T2p = (np.cos(phi) / np.cos(theta) / n) * t2p**2.0
-#       ----------------------------------------------------------------------
-
-#       calculating the (p + s) / 2 means of transmittance to describe the unpolarized light
-        T1 = 0.5 * (T1p + T1s)
-        T2 = 0.5 * (T2p + T2s)
 
 #       fraction of light that gets out of the drop after two transmissions
         return T1 * T2
 
-#   branch for the first order rainbow
     if order == 1:
-
-#       s-polarization (see fresnel_eqs.pdf, p. 13, left column)
-#       ----------------------------------------------------------------------
-#       first transmission coefficient (into the drop)
-        t1s = 2.0 * np.cos(phi) / (np.cos(phi) + n * np.cos(theta))
-
-#       reflection coefficient
-        rs = (np.cos(phi) - n * np.cos(theta)) / ((np.cos(phi) + n * np.cos(theta)))
-
-#       second transmission coefficient (out of the drop)
-        t2s = 2.0 * n * np.cos(theta) / (n * np.cos(theta) + np.cos(phi))
-
-#       reflectance (see fresnel_eqs.pdf, p. 17)
-        Rs = rs**2.0
-
-#       transmittance (see fresnel_eqs.pdf, p. 18)
-        T1s = (n * np.cos(theta) / np.cos(phi)) * t1s**2.0
-        T2s = (np.cos(phi) / np.cos(theta) / n) * t2s**2.0
-
-#       p-polarization (see fresnel_eqs.pdf, p. 13, right column)
-#       ----------------------------------------------------------------------
-#       first transmission coefficient (into the drop)
-        t1p = 2.0 * np.cos(phi) / (n * np.cos(phi) + np.cos(theta))
-
-#       reflection coefficient
-        rp = (n * np.cos(phi) - np.cos(theta)) / (n * np.cos(phi) + np.cos(theta))
-
-#       second transmission coefficient (out of the drop)
-        t2p = 2.0 * n * np.cos(theta) / (n * np.cos(phi) + np.cos(theta))
-
-#       reflectance (see fresnel_eqs.pdf, p. 17)
-        Rp = rp**2.0
-
-#       transmittance (see fresnel_eqs.pdf, p. 18)
-        T1p = (n * np.cos(theta) / np.cos(phi)) * t1p**2.0
-        T2p = (np.cos(phi) / np.cos(theta) / n) * t2p**2.0
-#       ----------------------------------------------------------------------
-
-#       calculating the (p + s) / 2 means of reflectance and transmittance to describe the unpolarized light
-        R = 0.5 * (Rp + Rs)
-
-        T1 = 0.5 * (T1p + T1s)
-        T2 = 0.5 * (T2p + T2s)
 
 #       fraction of light that gets out of the drop after two transmissions and one reflection
         return T1 * R * T2
+
+    if order == 2:
+
+#       fraction of light that gets out of the drop after two transmissions and two reflections
+        return T1 * R**2.0 * T2
 
 # angle of deflection as a function of wavelength/color and angle of incidence
 # for rainbow of a given order
@@ -283,6 +260,11 @@ def gamma(order, phi, wvl):
 
 #           Eq. (3) in main_article.pdf
             g[i, :] = 4.0 * np.arcsin(np.sin(phi) / n) - 2.0 * phi
+
+        if order == 2:
+
+#           follows from geometrical considerations
+            g[i, :] = np.pi + 2.0 * phi - 6.0 * np.arcsin(np.sin(phi) / n)
 
 # returning the value of gamma in degrees 
     return np.rad2deg(g)

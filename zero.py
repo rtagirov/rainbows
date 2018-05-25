@@ -164,7 +164,7 @@ def plot_hist(gam, gam_grid, wvl, col):
 
     ax.set_xlim(0, 90)
 
-    ax.set_xlabel(r'$\gamma$, [deg]', fontsize = 30)
+    ax.set_xlabel(r'$\gamma$-bins, [deg]', fontsize = 30)
     ax.set_ylabel(r'Number of $\gamma$-values', fontsize = 30)
 
 #   set the size of tick labels along both axes

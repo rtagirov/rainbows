@@ -1,10 +1,10 @@
-This version calculates first order rainbow.
+This version calculates zero and first order rainbows.
 The calculation is done for purple, blue, green and red colors.
-The results of the original paper are reproduced only to some extent.
-In particular, for reasons unknown, there is more green in the rainbow than blue.
-Moreover, the values of relative intensity are a bit higher than in the original paper.
+The results of the original paper, main_article.pdf, i.e. for the first order rainbow, are reproduced only to some extent.
+In particular, for reasons unknown, there is more green in the first order rainbow than blue.
+Moreover, the values of relative intensity are a bit higher than in main_article.pdf.
 
-rainbows.py --- main program; calls functions from the module first.py
+rainbows.py --- main program; calls functions from the module zero.py/first.py
 
                 plots:
 
@@ -27,9 +27,11 @@ rainbow.py  --- various rainbow functions
 first.py    --- builds optimal gamma grid for the first order rainbow, calls 'intensity' from rainbow.py;
                 plotting functions for gamma(phi) dependence and the color histogram are declared here
 
-auxfunc.py  --- auxiliary functions
+auxplt.py   --- plotting auxiliary functions
 
-auxplt.py   --- auxiliary functions for plotting
+auxsys.py   --- system auxiliary functions
+
+auxfunc.py  --- miscellaneous auxiliary functions
 
 The Plan:
 
