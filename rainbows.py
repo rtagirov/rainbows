@@ -135,6 +135,6 @@ first.plot_maxgam(phi1c, gam1c, gam_grid_1, wvl, col)
 second.plot_gamphi(phif, gam2f, wvl, col)
 second.plot_maxgam(phi2c, gam2c, gam_grid_2, wvl, col)
 
-#zero.plot_hist(gam0f, gam_grid_0, wvl, col)
-#first.plot_hist(gam1f, gam_grid_1, wvl, col)
+zero.plot_hist(gam0f, gam_grid_0, wvl, col)
+first.plot_hist(gam1f, gam_grid_1, wvl, col)
 second.plot_hist(gam2f, gam_grid_2, wvl, col)

@@ -3,20 +3,18 @@ import more_itertools as mit
 
 import importlib
 import auxfunc
-import auxsys
 
 importlib.reload(auxfunc)
-importlib.reload(auxsys)
 
 #package for showing progress bars
 from tqdm import tqdm
 
 # calculation of relative (to incindent) intensity
-# at each wavelength for a rainbow of a given order
+# at each wavelength for a rainbow of order k
 # from the gamma(phi) dependence
 # gam_grid --- gamma binning
 # ngb --- number of gamma bins (calculated in zero.py/first.py)
-def intensity(order, phi, gam, gam_grid, wvl, ngb):
+def intensity(k, phi, gam, gam_grid, wvl, ngb):
 
 # phi to radians
     p = np.deg2rad(phi)
@@ -50,7 +48,7 @@ def intensity(order, phi, gam, gam_grid, wvl, ngb):
 # with the given description (desc) for the progress bar
         for j in tqdm(range(ngb), ncols = auxfunc.term_width(), \
                                   desc = 'Calculating intensity (order ' \
-                                          + str(order) + ') ' +
+                                          + str(k) + ') ' +
                                          'at ' + str(wvl[i]) + ' nm'):
 
             p1 = 0.0  # middle phi for the first phi interval
@@ -107,7 +105,7 @@ def intensity(order, phi, gam, gam_grid, wvl, ngb):
 #               Fresnel weight for a rainbow of a given order at the given wavelength
 #               correspoinding to the first phi interval
 #               the function fresnel is declared below
-                fren1[i, j] = fresnel(order, p1, wvl[i])
+                fren1[i, j] = fresnel(k, p1, wvl[i])
 
 #               this condition means: if list g has two elements,
 #               i.e. if there are two groups of indices
@@ -123,7 +121,7 @@ def intensity(order, phi, gam, gam_grid, wvl, ngb):
 
                     weigh2[i, j] = np.cos(p2) * dp2
 
-                    fren2[i, j] = fresnel(order, p2, wvl[i])
+                    fren2[i, j] = fresnel(k, p2, wvl[i])
 
 #   the sum of weights has to be equal to one
 #   because of the numerical innacuracies the sum of
@@ -167,11 +165,7 @@ def intensity(order, phi, gam, gam_grid, wvl, ngb):
 # for the corresponding number of transmissions and reflections
 # then the (p + s) / 2 mean is calculated for each coefficient
 # to describe the unpolarized light
-def fresnel(order, phi, wvl):
-
-    if order != 0 and order != 1 and order != 2:
-
-        auxsys.abort('rainbow.py: fresnel: rainbow order is not recognized.')
+def fresnel(k, phi, wvl):
 
 #   refraction coefficient for a given wavelength
     n = riH2O(wvl)
@@ -222,20 +216,8 @@ def fresnel(order, phi, wvl):
     T1 = 0.5 * (T1p + T1s)
     T2 = 0.5 * (T2p + T2s)
 
-    if order == 0:
-
-#       fraction of light that gets out of the drop after two transmissions
-        return T1 * T2
-
-    if order == 1:
-
-#       fraction of light that gets out of the drop after two transmissions and one reflection
-        return T1 * R * T2
-
-    if order == 2:
-
-#       fraction of light that gets out of the drop after two transmissions and two reflections
-        return T1 * R**2.0 * T2
+#   fraction of light that gets out of the drop after two transmissions and k reflections
+    return T1 * R**k * T2
 
 # angle of deflection as a function of wavelength/color and angle of incidence
 # for rainbow of a given order
