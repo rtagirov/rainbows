@@ -219,34 +219,34 @@ def fresnel(k, phi, wvl):
 #   fraction of light that gets out of the drop after two transmissions and k reflections
     return T1 * R**k * T2
 
-# angle of deflection as a function of wavelength/color and angle of incidence
-# for rainbow of a given order
+# angle of deflection as a function of 
+# wavelength/color and angle of incidence
+# for rainbow of order k
 # phi is given in radians
-def gamma(order, phi, wvl):
+def gamma(k, phi, wvl):
 
-# gamma is different for each wavelength/color, hence 2D array
+#   gamma is different for each wavelength/color, hence 2D array
     g = np.zeros((len(wvl), len(phi)))
 
-# loop over wavelengths/colors
+#   loop over wavelengths/colors
     for i in range(len(wvl)):
 
-# refraction index for given wavelength/color
+#       refraction index for given wavelength/color
         n = riH2O(wvl[i])
 
-        if order == 0:
+#       angle of refraction
+        theta = np.arcsin(np.sin(phi) / n)
 
-#           follows from geometrical considerations
-            g[i, :] = 2.0 * (phi - np.arcsin(np.sin(phi) / n))
+#       angle of ray rotation after k reflections (follows from 
+#       geometrical considerations of the light ray travel inside the rain drop)
+        delta = 2.0 * (phi - theta) + k * (np.pi - 2.0 * theta)
 
-        if order == 1:
+        g[i, :] = delta
 
-#           Eq. (3) in main_article.pdf
-            g[i, :] = 4.0 * np.arcsin(np.sin(phi) / n) - 2.0 * phi
+        if k != 0:
 
-        if order == 2:
-
-#           follows from geometrical considerations
-            g[i, :] = np.pi + 2.0 * phi - 6.0 * np.arcsin(np.sin(phi) / n)
+#       follows from geometrical considerations
+            g[i, :] = (-1.0)**k * (g[i, :] - np.pi)
 
 # returning the value of gamma in degrees 
     return np.rad2deg(g)
