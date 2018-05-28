@@ -29,8 +29,6 @@ first.py    --- builds optimal gamma grid for the first order rainbow, calls 'in
 
 auxplt.py   --- plotting auxiliary functions
 
-auxsys.py   --- system auxiliary functions
-
 auxfunc.py  --- miscellaneous auxiliary functions
 
 The Plan:
